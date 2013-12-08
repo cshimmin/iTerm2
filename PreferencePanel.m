@@ -732,16 +732,46 @@ static NSString * const kRebuildColorPresetsMenuNotification = @"kRebuildColorPr
     }
 }
 
-- (NSString*)_chooseBackgroundImage
+- (NSString*)_chooseBackgroundImage:(bool)isDirectory
 {
     NSOpenPanel *panel;
     int sts;
-    NSString *filename = nil;
+    NSString *path = nil;
     
     panel = [NSOpenPanel openPanel];
     [panel setAllowsMultipleSelection: NO];
     
-    sts = [panel runModalForDirectory: NSHomeDirectory() file:@"" types: [NSImage imageFileTypes]];
+    if (isDirectory) {
+        [panel setCanChooseFiles: NO];
+        [panel setCanChooseDirectories: YES];
+    }
+    else {
+        [panel setAllowedFileTypes: [NSImage imageFileTypes]];
+    }
+    
+    //sts = [panel runModalForDirectory: NSHomeDirectory() file:@"" types: [NSImage imageFileTypes]];
+    sts = [panel runModalForDirectory: NSHomeDirectory() file: @""];
+    
+    if (sts == NSOKButton) {
+        if (isDirectory) {
+            path = [panel directory];
+        } else if ([[panel filenames] count] > 0) {
+            path = [[panel filenames] objectAtIndex: 0];
+        }
+        
+        if ([path length] > 0) {
+            return path;
+        } else {
+            [backgroundImage setState: NSOffState];
+            [backgroundImageDirectory setState: NSOffState];
+        }
+    } else {
+        [backgroundImage setState: NSOffState];
+        [backgroundImageDirectory setState: NSOffState];
+    }
+    
+    return nil;
+    /*
     if (sts == NSOKButton) {
         if ([[panel filenames] count] > 0) {
             filename = [[panel filenames] objectAtIndex: 0];
@@ -762,7 +792,7 @@ static NSString * const kRebuildColorPresetsMenuNotification = @"kRebuildColorPr
     } else {
         [backgroundImage setState: NSOffState];
     }
-    return nil;
+     */
 }
 
 - (IBAction)bookmarkSettingChanged:(id)sender
@@ -930,6 +960,25 @@ static NSString * const kRebuildColorPresetsMenuNotification = @"kRebuildColorPr
     [newDict setObject:[NSNumber numberWithBool:([nonasciiAntiAliased state]==NSOnState)] forKey:KEY_NONASCII_ANTI_ALIASED];
     [self _updateFontsDisplay];
     
+    if (sender == backgroundImage || sender == backgroundImageDirectory) {
+        NSString* path = nil;
+        backgroundImageIsFromDirectory = (sender==backgroundImageDirectory);
+        if ([sender state] == NSOnState) {
+            path = [self _chooseBackgroundImage : backgroundImageIsFromDirectory];
+        }
+        
+        if (!path) {
+            [backgroundImagePreview setImage: nil];
+            path = @"";
+        }
+        backgroundImagePath = path;
+    }
+    
+    [newDict setObject:backgroundImagePath forKey:KEY_BACKGROUND_IMAGE_LOCATION];
+    [newDict setObject:[NSNumber numberWithBool:([backgroundImageDirectory state]==NSOnState)] forKey:KEY_BACKGROUND_IMAGE_FROM_DIR];
+    [newDict setObject:[NSNumber numberWithBool:([backgroundImageTiled state]==NSOnState)] forKey:KEY_BACKGROUND_IMAGE_TILED];
+    
+    /*
     if (sender == backgroundImage) {
         NSString* filename = nil;
         if ([sender state] == NSOnState) {
@@ -943,6 +992,7 @@ static NSString * const kRebuildColorPresetsMenuNotification = @"kRebuildColorPr
     }
     [newDict setObject:backgroundImageFilename forKey:KEY_BACKGROUND_IMAGE_LOCATION];
     [newDict setObject:[NSNumber numberWithBool:([backgroundImageTiled state]==NSOnState)] forKey:KEY_BACKGROUND_IMAGE_TILED];
+     */
     
     // Terminal tab
     [newDict setObject:[NSNumber numberWithBool:([disableWindowResizing state]==NSOnState)] forKey:KEY_DISABLE_WINDOW_RESIZING];
@@ -2812,6 +2862,7 @@ static NSString * const kRebuildColorPresetsMenuNotification = @"kRebuildColorPr
         KEY_BLUR,
         KEY_BACKGROUND_IMAGE_LOCATION,
         KEY_BACKGROUND_IMAGE_TILED,
+        KEY_BACKGROUND_IMAGE_FROM_DIR,
         KEY_SYNC_TITLE,
         KEY_DISABLE_WINDOW_RESIZING,
         KEY_PREVENT_TAB,
@@ -4032,8 +4083,8 @@ static NSString * const kRebuildColorPresetsMenuNotification = @"kRebuildColorPr
         imageFilename = @"";
     }
     [backgroundImage setState:[imageFilename length] > 0 ? NSOnState : NSOffState];
-    [backgroundImagePreview setImage:[[[NSImage alloc] initByReferencingFile:imageFilename] autorelease]];
-    backgroundImageFilename = imageFilename;
+    //[backgroundImagePreview setImage:[[[NSImage alloc] initByReferencingFile:imageFilename] autorelease]];
+    backgroundImagePath = imageFilename;
     [backgroundImageTiled setState:[[dict objectForKey:KEY_BACKGROUND_IMAGE_TILED] boolValue] ? NSOnState : NSOffState];
 
     // Terminal tab

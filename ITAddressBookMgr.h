@@ -124,6 +124,7 @@
 #define KEY_ASCII_ANTI_ALIASED     @"ASCII Anti Aliased"
 #define KEY_NONASCII_ANTI_ALIASED  @"Non-ASCII Anti Aliased"
 #define KEY_BACKGROUND_IMAGE_LOCATION @"Background Image Location"
+#define KEY_BACKGROUND_IMAGE_FROM_DIR @"Background Images From Directory"
 #define KEY_BACKGROUND_IMAGE_TILED @"Background Image Is Tiled"
 
 // Terminal

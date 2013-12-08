@@ -470,7 +470,9 @@
     IBOutlet NSButton* asciiAntiAliased;
     IBOutlet NSButton* nonasciiAntiAliased;
     IBOutlet NSButton* backgroundImage;
-    NSString* backgroundImageFilename;
+    IBOutlet NSButton* backgroundImageDirectory;
+    NSString* backgroundImagePath;
+    bool backgroundImageIsFromDirectory;
     IBOutlet NSButton* backgroundImageTiled;
     IBOutlet NSImageView* backgroundImagePreview;
     IBOutlet NSTextField* displayFontsLabel;
@@ -716,7 +718,7 @@ typedef enum {
 - (void)updateBookmarkFields:(NSDictionary *)dict  ;
 - (IBAction)displaySelectFont:(id)sender;
 - (void)changeFont:(id)fontManager;
-- (NSString*)_chooseBackgroundImage;
+- (NSString*)_chooseBackgroundImage:(bool)isDirectory;
 - (IBAction)browseCustomFolder:(id)sender;
 - (BOOL)prefsDifferFromRemote;
 - (NSString *)remotePrefsLocation;
